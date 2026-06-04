@@ -68,7 +68,9 @@ export function createHttpServer(
     );
     const sessionId = transport.sessionId;
     transports[sessionId] = transport;
+    console.log(`[sse] client connected: ${sessionId}`);
     transport.onclose = () => {
+      console.log(`[sse] client disconnected: ${sessionId}`);
       delete transports[sessionId];
     };
     return transport;
@@ -107,13 +109,7 @@ export function createHttpServer(
       res.status(404).send('Session not found');
       return;
     }
-    try {
-      await transport.handlePostMessage(req, res, req.body);
-    } catch {
-      if (!res.headersSent) {
-        res.status(500).send('Error handling request');
-      }
-    }
+    transport.handlePostMessage(req, res, req.body).catch(() => {});
   });
 
   const httpPort = port ?? (Number(process.env.HTTP_PORT) || 3000);
