@@ -180,7 +180,8 @@ Environment Variables:
 
 | Endpoint | Method | Description |
 |----------|--------|-------------|
-| `/mcp` | `GET` | SSE stream for MCP connection |
+| `/mcp` | `GET` | SSE stream for MCP connection (default) |
+| `/sse` | `GET` | SSE stream for MCP connection (Odysseus AI compatible) |
 | `/messages` | `POST` | MCP message handler |
 | `/webhooks/google-calendar` | `POST` | Google Calendar push notifications |
 | `/health` | `GET` | Health check |

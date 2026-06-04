@@ -53,17 +53,33 @@ export function createHttpServer(
 
   const transports: Record<string, SSEServerTransport> = {};
 
+  function createSseTransport(res: express.Response, messageEndpoint: string) {
+    const transport = new SSEServerTransport(messageEndpoint, res, {
+      enableDnsRebindingProtection: true,
+      allowedHosts: ['localhost', '127.0.0.1', '::1'],
+    });
+    const sessionId = transport.sessionId;
+    transports[sessionId] = transport;
+    transport.onclose = () => {
+      delete transports[sessionId];
+    };
+    return transport;
+  }
+
   app.get('/mcp', async (req, res) => {
     try {
-      const transport = new SSEServerTransport('/messages', res, {
-        enableDnsRebindingProtection: true,
-        allowedHosts: ['localhost', '127.0.0.1', '::1'],
-      });
-      const sessionId = transport.sessionId;
-      transports[sessionId] = transport;
-      transport.onclose = () => {
-        delete transports[sessionId];
-      };
+      const transport = createSseTransport(res, '/messages');
+      await server.connect(transport);
+    } catch {
+      if (!res.headersSent) {
+        res.status(500).send('Error establishing SSE stream');
+      }
+    }
+  });
+
+  app.get('/sse', async (req, res) => {
+    try {
+      const transport = createSseTransport(res, '/messages');
       await server.connect(transport);
     } catch {
       if (!res.headersSent) {
