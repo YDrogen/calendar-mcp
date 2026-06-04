@@ -1,0 +1,15 @@
+services:
+  calendar-mcp:
+    build: .
+    ports:
+      - "${HTTP_PORT:-3000}:${HTTP_PORT:-3000}"
+      - "${OAUTH_PORT:-3500}:${OAUTH_PORT:-3500}"
+    environment:
+      - GOOGLE_CLIENT_ID=${GOOGLE_CLIENT_ID}
+      - GOOGLE_CLIENT_SECRET=${GOOGLE_CLIENT_SECRET}
+      - CALENDAR_MCP_ENCRYPTION_KEY=${CALENDAR_MCP_ENCRYPTION_KEY}
+      - HTTP_PORT=${HTTP_PORT:-3000}
+      - OAUTH_PORT=${OAUTH_PORT:-3500}
+    volumes:
+      - ~/.config/calendar-mcp:/home/node/.config/calendar-mcp
+    restart: unless-stopped
