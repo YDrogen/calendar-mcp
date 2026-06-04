@@ -318,7 +318,7 @@ describe('Tool Schemas - Validation Tests', () => {
 
   describe('AllToolSchemas registry', () => {
     it('should contain all 27 tool schemas', () => {
-      expect(Object.keys(AllToolSchemas)).toHaveLength(27);
+      expect(Object.keys(AllToolSchemas)).toHaveLength(28);
     });
 
     it('should have schemas for all CRUD operations', () => {

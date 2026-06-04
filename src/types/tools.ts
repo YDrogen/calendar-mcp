@@ -339,6 +339,12 @@ export const MoveTaskSchema = z
   })
   .describe('Move a task to a new position or parent');
 
+export const AuthenticateSchema = z
+  .object({})
+  .describe(
+    'Start Google OAuth2 authentication. Returns a URL to open in your browser. After signing in, tokens are saved automatically.'
+  );
+
 // Type exports for consuming code
 export type ListEventsInput = z.infer<typeof ListEventsSchema>;
 export type GetEventInput = z.infer<typeof GetEventSchema>;
@@ -369,6 +375,7 @@ export type UpdateTaskInput = z.infer<typeof UpdateTaskSchema>;
 export type DeleteTaskInput = z.infer<typeof DeleteTaskSchema>;
 export type CompleteTaskInput = z.infer<typeof CompleteTaskSchema>;
 export type MoveTaskInput = z.infer<typeof MoveTaskSchema>;
+export type AuthenticateInput = z.infer<typeof AuthenticateSchema>;
 
 export const AllToolSchemas = {
   list_events: ListEventsSchema,
@@ -398,4 +405,5 @@ export const AllToolSchemas = {
   delete_task: DeleteTaskSchema,
   complete_task: CompleteTaskSchema,
   move_task: MoveTaskSchema,
+  authenticate: AuthenticateSchema,
 } as const;

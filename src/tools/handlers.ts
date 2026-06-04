@@ -30,6 +30,7 @@ import {
   DeleteTaskInput,
   CompleteTaskInput,
   MoveTaskInput,
+  AuthenticateInput,
 } from '../types/tools.js';
 
 export interface CalendarService {
@@ -162,6 +163,11 @@ function formatError(error: unknown): string {
   return `Error: ${String(error)}`;
 }
 
+export interface AuthState {
+  isAuthenticated: () => boolean;
+  startAuthFlow: () => string;
+}
+
 export type ToolCallResult = {
   isError?: boolean;
   content: Array<{ type: 'text'; text: string }>;
@@ -183,7 +189,8 @@ async function handleToolCall<T>(fn: () => Promise<T>): Promise<ToolCallResult> 
 
 export function createHandlers(
   calendarService: CalendarService,
-  tasksService: TasksService
+  tasksService: TasksService,
+  authState?: AuthState
 ): {
   [name: string]: (input: unknown) => Promise<ToolCallResult>;
 } {
@@ -401,6 +408,29 @@ export function createHandlers(
           typedInput.previous
         )
       );
+    },
+
+    authenticate: async (_input: unknown) => {
+      if (!authState) {
+        return {
+          isError: true,
+          content: [{ type: 'text', text: 'Auth state not initialized. Check server configuration.' }],
+        };
+      }
+      if (authState.isAuthenticated()) {
+        return {
+          content: [{ type: 'text', text: 'Already authenticated. Tokens loaded and active.' }],
+        };
+      }
+      const url = authState.startAuthFlow();
+      return {
+        content: [
+          {
+            type: 'text',
+            text: `Open this URL in your browser to authorize Google access: ${url}\n\nAfter authorizing, you will be redirected back to the server which handles the callback automatically.`,
+          },
+        ],
+      };
     },
   };
 

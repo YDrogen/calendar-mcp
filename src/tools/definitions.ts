@@ -27,12 +27,14 @@ import {
   DeleteTaskSchema,
   CompleteTaskSchema,
   MoveTaskSchema,
+  AuthenticateSchema,
 } from '../types/tools.js';
 import { createHandlers } from './handlers.js';
-import type { CalendarService, TasksService } from './handlers.js';
+import type { CalendarService, TasksService, AuthState } from './handlers.js';
 
 let _calendarService: CalendarService | null = null;
 let _tasksService: TasksService | null = null;
+const _authState: { current?: AuthState } = {};
 
 export function setCalendarService(service: CalendarService): void {
   _calendarService = service;
@@ -40,6 +42,10 @@ export function setCalendarService(service: CalendarService): void {
 
 export function setTasksService(service: TasksService): void {
   _tasksService = service;
+}
+
+export function setAuthState(state: AuthState): void {
+  _authState.current = state;
 }
 
 function getCalendarService(): CalendarService {
@@ -90,7 +96,15 @@ const lazyTasksService: TasksService = new Proxy({} as TasksService, {
   },
 });
 
-const handlers = createHandlers(lazyCalendarService, lazyTasksService);
+const handlers = createHandlers(lazyCalendarService, lazyTasksService, {
+  isAuthenticated: () => _authState.current?.isAuthenticated() ?? false,
+  startAuthFlow: () => {
+    if (!_authState.current) {
+      throw new Error('Auth state not initialized. Call setAuthState() first.');
+    }
+    return _authState.current.startAuthFlow();
+  },
+});
 
 export const AllToolDefinitions: ToolDefinition[] = [
   {
@@ -272,5 +286,11 @@ export const AllToolDefinitions: ToolDefinition[] = [
     description: 'Move a task to a new position or parent',
     inputSchema: MoveTaskSchema,
     handler: handlers.move_task,
+  },
+  {
+    name: 'authenticate',
+    description: 'Start Google OAuth2 authentication flow. Returns a URL to sign in with your Google account.',
+    inputSchema: AuthenticateSchema,
+    handler: handlers.authenticate,
   },
 ];

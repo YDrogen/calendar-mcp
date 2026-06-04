@@ -3,8 +3,8 @@ import { AllToolDefinitions, setCalendarService, setTasksService } from '../tool
 import { AllToolSchemas } from '../types/tools';
 
 describe('Tool Definitions - Schema Tests', () => {
-  it('should export 27 tool definitions', () => {
-    expect(AllToolDefinitions).toHaveLength(27);
+  it('should export 28 tool definitions', () => {
+    expect(AllToolDefinitions).toHaveLength(28);
   });
 
   it('should have all required CRUD tool definitions', () => {
@@ -40,6 +40,14 @@ describe('Tool Definitions - Schema Tests', () => {
     const names = AllToolDefinitions.map((d) => d.name);
     expect(names).toContain('search_events');
     expect(names).toContain('get_current_time');
+  });
+
+  it('should have authenticate tool definition', () => {
+    const names = AllToolDefinitions.map((d) => d.name);
+    expect(names).toContain('authenticate');
+    const def = AllToolDefinitions.find((d) => d.name === 'authenticate');
+    expect(def).toBeDefined();
+    expect(def?.annotations).toBeUndefined();
   });
 
   it('should have task list tool definitions', () => {

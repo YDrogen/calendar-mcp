@@ -44,8 +44,8 @@ describe('Tool Handlers', () => {
     handlers = createHandlers(mockCalendarService, mockTasksService);
   });
 
-  it('should create all 27 handlers', () => {
-    expect(Object.keys(handlers)).toHaveLength(27);
+  it('should create all 28 handlers', () => {
+    expect(Object.keys(handlers)).toHaveLength(28);
     expect(handlers.list_events).toBeDefined();
     expect(handlers.get_event).toBeDefined();
     expect(handlers.create_event).toBeDefined();
@@ -73,6 +73,7 @@ describe('Tool Handlers', () => {
     expect(handlers.delete_task).toBeDefined();
     expect(handlers.complete_task).toBeDefined();
     expect(handlers.move_task).toBeDefined();
+    expect(handlers.authenticate).toBeDefined();
   });
 
   describe('list_events', () => {
