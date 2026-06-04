@@ -1,13 +1,14 @@
 import { describe, it, expect, vi } from 'vitest';
 import { createHandlers } from '../tools/handlers';
-import type { CalendarService } from '../tools/handlers';
+import type { CalendarService, TasksService } from '../tools/handlers';
 
 describe('Tool Handlers', () => {
-  let mockService: CalendarService;
+  let mockCalendarService: CalendarService;
+  let mockTasksService: TasksService;
   let handlers: ReturnType<typeof createHandlers>;
 
   beforeEach(() => {
-    mockService = {
+    mockCalendarService = {
       listEvents: vi.fn(),
       getEvent: vi.fn(),
       createEvent: vi.fn(),
@@ -25,11 +26,26 @@ describe('Tool Handlers', () => {
       getCurrentTime: vi.fn(),
     } as unknown as CalendarService;
 
-    handlers = createHandlers(mockService);
+    mockTasksService = {
+      listTaskLists: vi.fn(),
+      getTaskList: vi.fn(),
+      createTaskList: vi.fn(),
+      updateTaskList: vi.fn(),
+      deleteTaskList: vi.fn(),
+      listTasks: vi.fn(),
+      getTask: vi.fn(),
+      createTask: vi.fn(),
+      updateTask: vi.fn(),
+      deleteTask: vi.fn(),
+      completeTask: vi.fn(),
+      moveTask: vi.fn(),
+    } as unknown as TasksService;
+
+    handlers = createHandlers(mockCalendarService, mockTasksService);
   });
 
-  it('should create all 15 handlers', () => {
-    expect(Object.keys(handlers)).toHaveLength(15);
+  it('should create all 27 handlers', () => {
+    expect(Object.keys(handlers)).toHaveLength(27);
     expect(handlers.list_events).toBeDefined();
     expect(handlers.get_event).toBeDefined();
     expect(handlers.create_event).toBeDefined();
@@ -45,12 +61,24 @@ describe('Tool Handlers', () => {
     expect(handlers.list_subscriptions).toBeDefined();
     expect(handlers.search_events).toBeDefined();
     expect(handlers.get_current_time).toBeDefined();
+    expect(handlers.list_task_lists).toBeDefined();
+    expect(handlers.get_task_list).toBeDefined();
+    expect(handlers.create_task_list).toBeDefined();
+    expect(handlers.update_task_list).toBeDefined();
+    expect(handlers.delete_task_list).toBeDefined();
+    expect(handlers.list_tasks).toBeDefined();
+    expect(handlers.get_task).toBeDefined();
+    expect(handlers.create_task).toBeDefined();
+    expect(handlers.update_task).toBeDefined();
+    expect(handlers.delete_task).toBeDefined();
+    expect(handlers.complete_task).toBeDefined();
+    expect(handlers.move_task).toBeDefined();
   });
 
   describe('list_events', () => {
     it('should delegate to listEvents with all parameters', async () => {
       const mockResult = [{ id: '1', summary: 'Event 1' }];
-      vi.mocked(mockService.listEvents).mockResolvedValue(mockResult);
+      vi.mocked(mockCalendarService.listEvents).mockResolvedValue(mockResult);
 
       const input = {
         calendarId: 'primary',
@@ -62,7 +90,7 @@ describe('Tool Handlers', () => {
 
       const result = await handlers.list_events(input);
 
-      expect(mockService.listEvents).toHaveBeenCalledWith(
+      expect(mockCalendarService.listEvents).toHaveBeenCalledWith(
         'primary',
         '2024-01-01T00:00:00Z',
         '2024-01-31T23:59:59Z',
@@ -75,11 +103,11 @@ describe('Tool Handlers', () => {
     });
 
     it('should handle optional parameters', async () => {
-      vi.mocked(mockService.listEvents).mockResolvedValue([]);
+      vi.mocked(mockCalendarService.listEvents).mockResolvedValue([]);
 
       const result = await handlers.list_events({});
 
-      expect(mockService.listEvents).toHaveBeenCalledWith(
+      expect(mockCalendarService.listEvents).toHaveBeenCalledWith(
         undefined,
         undefined,
         undefined,
@@ -93,12 +121,12 @@ describe('Tool Handlers', () => {
   describe('get_event', () => {
     it('should delegate to getEvent', async () => {
       const mockResult = { id: 'evt1', summary: 'My Event' };
-      vi.mocked(mockService.getEvent).mockResolvedValue(mockResult);
+      vi.mocked(mockCalendarService.getEvent).mockResolvedValue(mockResult);
 
       const input = { calendarId: 'primary', eventId: 'evt1' };
       const result = await handlers.get_event(input);
 
-      expect(mockService.getEvent).toHaveBeenCalledWith('primary', 'evt1');
+      expect(mockCalendarService.getEvent).toHaveBeenCalledWith('primary', 'evt1');
       expect(result.content[0].text).toBe(JSON.stringify(mockResult));
     });
   });
@@ -106,7 +134,7 @@ describe('Tool Handlers', () => {
   describe('create_event', () => {
     it('should delegate to createEvent with mapped body', async () => {
       const mockResult = { id: 'new1', summary: 'New Event' };
-      vi.mocked(mockService.createEvent).mockResolvedValue(mockResult);
+      vi.mocked(mockCalendarService.createEvent).mockResolvedValue(mockResult);
 
       const input = {
         calendarId: 'primary',
@@ -117,7 +145,7 @@ describe('Tool Handlers', () => {
 
       const result = await handlers.create_event(input);
 
-      expect(mockService.createEvent).toHaveBeenCalledWith('primary', {
+      expect(mockCalendarService.createEvent).toHaveBeenCalledWith('primary', {
         summary: 'New Event',
         start: { dateTime: '2024-06-15T10:00:00Z' },
         end: { dateTime: '2024-06-15T11:00:00Z' },
@@ -129,7 +157,7 @@ describe('Tool Handlers', () => {
   describe('update_event', () => {
     it('should delegate to updateEvent with mapped body', async () => {
       const mockResult = { id: 'evt1', summary: 'Updated' };
-      vi.mocked(mockService.updateEvent).mockResolvedValue(mockResult);
+      vi.mocked(mockCalendarService.updateEvent).mockResolvedValue(mockResult);
 
       const input = {
         calendarId: 'primary',
@@ -139,7 +167,7 @@ describe('Tool Handlers', () => {
 
       const result = await handlers.update_event(input);
 
-      expect(mockService.updateEvent).toHaveBeenCalledWith('primary', 'evt1', {
+      expect(mockCalendarService.updateEvent).toHaveBeenCalledWith('primary', 'evt1', {
         summary: 'Updated Title',
       });
       expect(result.content[0].text).toBe(JSON.stringify(mockResult));
@@ -148,12 +176,12 @@ describe('Tool Handlers', () => {
 
   describe('delete_event', () => {
     it('should delegate to deleteEvent', async () => {
-      vi.mocked(mockService.deleteEvent).mockResolvedValue(undefined);
+      vi.mocked(mockCalendarService.deleteEvent).mockResolvedValue(undefined);
 
       const input = { calendarId: 'primary', eventId: 'evt1' };
       const result = await handlers.delete_event(input);
 
-      expect(mockService.deleteEvent).toHaveBeenCalledWith('primary', 'evt1');
+      expect(mockCalendarService.deleteEvent).toHaveBeenCalledWith('primary', 'evt1');
       expect(result.content[0].text).toBe(JSON.stringify(undefined));
     });
   });
@@ -161,7 +189,7 @@ describe('Tool Handlers', () => {
   describe('list_event_instances', () => {
     it('should delegate to listEventInstances', async () => {
       const mockResult = [{ id: 'inst1', summary: 'Instance 1' }];
-      vi.mocked(mockService.listEventInstances).mockResolvedValue(mockResult);
+      vi.mocked(mockCalendarService.listEventInstances).mockResolvedValue(mockResult);
 
       const input = {
         calendarId: 'primary',
@@ -173,7 +201,7 @@ describe('Tool Handlers', () => {
 
       const result = await handlers.list_event_instances(input);
 
-      expect(mockService.listEventInstances).toHaveBeenCalledWith(
+      expect(mockCalendarService.listEventInstances).toHaveBeenCalledWith(
         'primary',
         'rec1',
         '2024-06-01T00:00:00Z',
@@ -187,7 +215,7 @@ describe('Tool Handlers', () => {
   describe('create_recurring_event', () => {
     it('should delegate to createRecurringEvent with mapped body', async () => {
       const mockResult = { id: 'rec1', summary: 'Weekly Meeting' };
-      vi.mocked(mockService.createRecurringEvent).mockResolvedValue(mockResult);
+      vi.mocked(mockCalendarService.createRecurringEvent).mockResolvedValue(mockResult);
 
       const input = {
         calendarId: 'primary',
@@ -199,7 +227,7 @@ describe('Tool Handlers', () => {
 
       const result = await handlers.create_recurring_event(input);
 
-      expect(mockService.createRecurringEvent).toHaveBeenCalledWith('primary', {
+      expect(mockCalendarService.createRecurringEvent).toHaveBeenCalledWith('primary', {
         summary: 'Weekly Meeting',
         start: { dateTime: '2024-06-15T10:00:00Z' },
         end: { dateTime: '2024-06-15T11:00:00Z' },
@@ -212,7 +240,7 @@ describe('Tool Handlers', () => {
   describe('query_free_busy', () => {
     it('should delegate to queryFreeBusy', async () => {
       const mockResult = { calendars: {} };
-      vi.mocked(mockService.queryFreeBusy).mockResolvedValue(mockResult);
+      vi.mocked(mockCalendarService.queryFreeBusy).mockResolvedValue(mockResult);
 
       const input = {
         calendarIds: ['cal1', 'cal2'],
@@ -223,7 +251,7 @@ describe('Tool Handlers', () => {
 
       const result = await handlers.query_free_busy(input);
 
-      expect(mockService.queryFreeBusy).toHaveBeenCalledWith(
+      expect(mockCalendarService.queryFreeBusy).toHaveBeenCalledWith(
         ['cal1', 'cal2'],
         '2024-01-01T00:00:00Z',
         '2024-01-02T00:00:00Z',
@@ -236,11 +264,11 @@ describe('Tool Handlers', () => {
   describe('list_calendars', () => {
     it('should delegate to listCalendars', async () => {
       const mockResult = [{ id: 'cal1', summary: 'Work' }];
-      vi.mocked(mockService.listCalendars).mockResolvedValue(mockResult);
+      vi.mocked(mockCalendarService.listCalendars).mockResolvedValue(mockResult);
 
       const result = await handlers.list_calendars({});
 
-      expect(mockService.listCalendars).toHaveBeenCalledWith();
+      expect(mockCalendarService.listCalendars).toHaveBeenCalledWith();
       expect(result.content[0].text).toBe(JSON.stringify(mockResult));
     });
   });
@@ -248,12 +276,12 @@ describe('Tool Handlers', () => {
   describe('get_calendar', () => {
     it('should delegate to getCalendar', async () => {
       const mockResult = { id: 'cal1', summary: 'Work' };
-      vi.mocked(mockService.getCalendar).mockResolvedValue(mockResult);
+      vi.mocked(mockCalendarService.getCalendar).mockResolvedValue(mockResult);
 
       const input = { calendarId: 'cal1' };
       const result = await handlers.get_calendar(input);
 
-      expect(mockService.getCalendar).toHaveBeenCalledWith('cal1');
+      expect(mockCalendarService.getCalendar).toHaveBeenCalledWith('cal1');
       expect(result.content[0].text).toBe(JSON.stringify(mockResult));
     });
   });
@@ -261,7 +289,7 @@ describe('Tool Handlers', () => {
   describe('subscribe_calendar', () => {
     it('should delegate to subscribeCalendar', async () => {
       const mockResult = { id: 'channel1', resourceId: 'res1' };
-      vi.mocked(mockService.subscribeCalendar).mockResolvedValue(mockResult);
+      vi.mocked(mockCalendarService.subscribeCalendar).mockResolvedValue(mockResult);
 
       const input = {
         calendarId: 'primary',
@@ -270,7 +298,7 @@ describe('Tool Handlers', () => {
 
       const result = await handlers.subscribe_calendar(input);
 
-      expect(mockService.subscribeCalendar).toHaveBeenCalledWith(
+      expect(mockCalendarService.subscribeCalendar).toHaveBeenCalledWith(
         'primary',
         'https://example.com/webhook'
       );
@@ -280,12 +308,12 @@ describe('Tool Handlers', () => {
 
   describe('unsubscribe_calendar', () => {
     it('should delegate to unsubscribeCalendar', async () => {
-      vi.mocked(mockService.unsubscribeCalendar).mockResolvedValue(undefined);
+      vi.mocked(mockCalendarService.unsubscribeCalendar).mockResolvedValue(undefined);
 
       const input = { channelId: 'channel1' };
       const result = await handlers.unsubscribe_calendar(input);
 
-      expect(mockService.unsubscribeCalendar).toHaveBeenCalledWith('channel1');
+      expect(mockCalendarService.unsubscribeCalendar).toHaveBeenCalledWith('channel1');
       expect(result.content[0].text).toBe(JSON.stringify(undefined));
     });
   });
@@ -293,11 +321,11 @@ describe('Tool Handlers', () => {
   describe('list_subscriptions', () => {
     it('should delegate to listSubscriptions', async () => {
       const mockResult = [{ id: 'channel1' }];
-      vi.mocked(mockService.listSubscriptions).mockResolvedValue(mockResult);
+      vi.mocked(mockCalendarService.listSubscriptions).mockResolvedValue(mockResult);
 
       const result = await handlers.list_subscriptions({});
 
-      expect(mockService.listSubscriptions).toHaveBeenCalledWith();
+      expect(mockCalendarService.listSubscriptions).toHaveBeenCalledWith();
       expect(result.content[0].text).toBe(JSON.stringify(mockResult));
     });
   });
@@ -305,7 +333,7 @@ describe('Tool Handlers', () => {
   describe('search_events', () => {
     it('should delegate to searchEvents', async () => {
       const mockResult = [{ id: '1', summary: 'Meeting' }];
-      vi.mocked(mockService.searchEvents).mockResolvedValue(mockResult);
+      vi.mocked(mockCalendarService.searchEvents).mockResolvedValue(mockResult);
 
       const input = {
         calendarId: 'primary',
@@ -317,7 +345,7 @@ describe('Tool Handlers', () => {
 
       const result = await handlers.search_events(input);
 
-      expect(mockService.searchEvents).toHaveBeenCalledWith(
+      expect(mockCalendarService.searchEvents).toHaveBeenCalledWith(
         'primary',
         'meeting',
         '2024-01-01T00:00:00Z',
@@ -331,18 +359,18 @@ describe('Tool Handlers', () => {
   describe('get_current_time', () => {
     it('should delegate to getCurrentTime', async () => {
       const mockResult = { currentTime: '2024-01-01T00:00:00Z', timezone: 'UTC' };
-      vi.mocked(mockService.getCurrentTime).mockResolvedValue(mockResult);
+      vi.mocked(mockCalendarService.getCurrentTime).mockResolvedValue(mockResult);
 
       const result = await handlers.get_current_time({});
 
-      expect(mockService.getCurrentTime).toHaveBeenCalledWith();
+      expect(mockCalendarService.getCurrentTime).toHaveBeenCalledWith();
       expect(result.content[0].text).toBe(JSON.stringify(mockResult));
     });
   });
 
   describe('error handling', () => {
     it('should format errors with clear messages', async () => {
-      vi.mocked(mockService.listEvents).mockRejectedValue(
+      vi.mocked(mockCalendarService.listEvents).mockRejectedValue(
         new Error('Network error')
       );
 
@@ -355,7 +383,7 @@ describe('Tool Handlers', () => {
     });
 
     it('should handle non-Error exceptions', async () => {
-      vi.mocked(mockService.getEvent).mockRejectedValue('string error');
+      vi.mocked(mockCalendarService.getEvent).mockRejectedValue('string error');
 
       const result = await handlers.get_event({ eventId: 'evt1' });
 
@@ -364,7 +392,7 @@ describe('Tool Handlers', () => {
     });
 
     it('should handle null/undefined exceptions', async () => {
-      vi.mocked(mockService.deleteEvent).mockRejectedValue(null);
+      vi.mocked(mockCalendarService.deleteEvent).mockRejectedValue(null);
 
       const result = await handlers.delete_event({ eventId: 'evt1' });
 

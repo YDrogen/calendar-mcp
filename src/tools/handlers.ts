@@ -18,6 +18,18 @@ import {
   SubscribeCalendarInput,
   UnsubscribeCalendarInput,
   SearchEventsInput,
+  ListTaskListsInput,
+  GetTaskListInput,
+  CreateTaskListInput,
+  UpdateTaskListInput,
+  DeleteTaskListInput,
+  ListTasksInput,
+  GetTaskInput,
+  CreateTaskInput,
+  UpdateTaskInput,
+  DeleteTaskInput,
+  CompleteTaskInput,
+  MoveTaskInput,
 } from '../types/tools.js';
 
 export interface CalendarService {
@@ -75,6 +87,45 @@ export interface CalendarService {
   getCurrentTime(): Promise<{ currentTime: string; timezone: string }>;
 }
 
+export interface TasksService {
+  listTaskLists(): Promise<{ id?: string | null; title?: string | null }[]>;
+  getTaskList(listId: string): Promise<{ id?: string | null; title?: string | null }>;
+  createTaskList(title: string): Promise<{ id?: string | null; title?: string | null }>;
+  updateTaskList(listId: string, title: string): Promise<{ id?: string | null; title?: string | null }>;
+  deleteTaskList(listId: string): Promise<void>;
+  listTasks(
+    listId?: string,
+    showCompleted?: boolean,
+    showHidden?: boolean,
+    dueMin?: string,
+    dueMax?: string
+  ): Promise<{ id?: string | null; title?: string | null; status?: string | null }[]>;
+  getTask(listId: string, taskId: string): Promise<{ id?: string | null; title?: string | null; status?: string | null }>;
+  createTask(
+    listId?: string,
+    title?: string,
+    notes?: string,
+    due?: string,
+    parent?: string
+  ): Promise<{ id?: string | null; title?: string | null; status?: string | null }>;
+  updateTask(
+    listId: string,
+    taskId: string,
+    title?: string,
+    notes?: string,
+    due?: string,
+    status?: 'needsAction' | 'completed'
+  ): Promise<{ id?: string | null; title?: string | null; status?: string | null }>;
+  deleteTask(listId: string, taskId: string): Promise<void>;
+  completeTask(listId: string, taskId: string): Promise<{ id?: string | null; title?: string | null; status?: string | null }>;
+  moveTask(
+    listId: string,
+    taskId: string,
+    parent?: string,
+    previous?: string
+  ): Promise<{ id?: string | null; title?: string | null; status?: string | null }>;
+}
+
 function formatError(error: unknown): string {
   if (error instanceof GaxiosError) {
     const status = error.response?.status ?? error.status;
@@ -130,7 +181,10 @@ async function handleToolCall<T>(fn: () => Promise<T>): Promise<ToolCallResult> 
   }
 }
 
-export function createHandlers(calendarService: CalendarService): {
+export function createHandlers(
+  calendarService: CalendarService,
+  tasksService: TasksService
+): {
   [name: string]: (input: unknown) => Promise<ToolCallResult>;
 } {
   const handlers: Record<string, (input: unknown) => Promise<ToolCallResult>> = {
@@ -250,6 +304,104 @@ export function createHandlers(calendarService: CalendarService): {
 
     get_current_time: async (_input: unknown) =>
       handleToolCall(() => calendarService.getCurrentTime()),
+
+    list_task_lists: async (_input: unknown) =>
+      handleToolCall(() => tasksService.listTaskLists()),
+
+    get_task_list: async (input: unknown) => {
+      const typedInput = input as GetTaskListInput;
+      return handleToolCall(() => tasksService.getTaskList(typedInput.listId));
+    },
+
+    create_task_list: async (input: unknown) => {
+      const typedInput = input as CreateTaskListInput;
+      return handleToolCall(() => tasksService.createTaskList(typedInput.title));
+    },
+
+    update_task_list: async (input: unknown) => {
+      const typedInput = input as UpdateTaskListInput;
+      return handleToolCall(() =>
+        tasksService.updateTaskList(typedInput.listId, typedInput.title)
+      );
+    },
+
+    delete_task_list: async (input: unknown) => {
+      const typedInput = input as DeleteTaskListInput;
+      return handleToolCall(() => tasksService.deleteTaskList(typedInput.listId));
+    },
+
+    list_tasks: async (input: unknown) => {
+      const typedInput = input as ListTasksInput;
+      return handleToolCall(() =>
+        tasksService.listTasks(
+          typedInput.listId,
+          typedInput.showCompleted,
+          typedInput.showHidden,
+          typedInput.dueMin,
+          typedInput.dueMax
+        )
+      );
+    },
+
+    get_task: async (input: unknown) => {
+      const typedInput = input as GetTaskInput;
+      return handleToolCall(() =>
+        tasksService.getTask(typedInput.listId, typedInput.taskId)
+      );
+    },
+
+    create_task: async (input: unknown) => {
+      const typedInput = input as CreateTaskInput;
+      return handleToolCall(() =>
+        tasksService.createTask(
+          typedInput.listId,
+          typedInput.title,
+          typedInput.notes,
+          typedInput.due,
+          typedInput.parent
+        )
+      );
+    },
+
+    update_task: async (input: unknown) => {
+      const typedInput = input as UpdateTaskInput;
+      return handleToolCall(() =>
+        tasksService.updateTask(
+          typedInput.listId,
+          typedInput.taskId,
+          typedInput.title,
+          typedInput.notes,
+          typedInput.due,
+          typedInput.status
+        )
+      );
+    },
+
+    delete_task: async (input: unknown) => {
+      const typedInput = input as DeleteTaskInput;
+      return handleToolCall(() =>
+        tasksService.deleteTask(typedInput.listId, typedInput.taskId)
+      );
+    },
+
+    complete_task: async (input: unknown) => {
+      const typedInput = input as CompleteTaskInput;
+      return handleToolCall(() =>
+        tasksService.completeTask(typedInput.listId, typedInput.taskId)
+      );
+    },
+
+    move_task: async (input: unknown) => {
+      const typedInput = input as MoveTaskInput;
+      return handleToolCall(() =>
+        tasksService.moveTask(
+          typedInput.listId,
+          typedInput.taskId,
+          typedInput.parent,
+          typedInput.previous
+        )
+      );
+    },
   };
 
   return handlers;

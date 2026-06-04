@@ -1,10 +1,10 @@
 import { describe, it, expect } from 'vitest';
-import { AllToolDefinitions, setCalendarService } from '../tools/definitions';
+import { AllToolDefinitions, setCalendarService, setTasksService } from '../tools/definitions';
 import { AllToolSchemas } from '../types/tools';
 
 describe('Tool Definitions - Schema Tests', () => {
-  it('should export 15 tool definitions', () => {
-    expect(AllToolDefinitions).toHaveLength(15);
+  it('should export 27 tool definitions', () => {
+    expect(AllToolDefinitions).toHaveLength(27);
   });
 
   it('should have all required CRUD tool definitions', () => {
@@ -42,6 +42,26 @@ describe('Tool Definitions - Schema Tests', () => {
     expect(names).toContain('get_current_time');
   });
 
+  it('should have task list tool definitions', () => {
+    const names = AllToolDefinitions.map((d) => d.name);
+    expect(names).toContain('list_task_lists');
+    expect(names).toContain('get_task_list');
+    expect(names).toContain('create_task_list');
+    expect(names).toContain('update_task_list');
+    expect(names).toContain('delete_task_list');
+  });
+
+  it('should have task tool definitions', () => {
+    const names = AllToolDefinitions.map((d) => d.name);
+    expect(names).toContain('list_tasks');
+    expect(names).toContain('get_task');
+    expect(names).toContain('create_task');
+    expect(names).toContain('update_task');
+    expect(names).toContain('delete_task');
+    expect(names).toContain('complete_task');
+    expect(names).toContain('move_task');
+  });
+
   it('should have correct schemas for each tool definition', () => {
     for (const def of AllToolDefinitions) {
       expect(def.inputSchema).toBeDefined();
@@ -77,6 +97,10 @@ describe('Tool Definitions - Schema Tests', () => {
         'list_subscriptions',
         'search_events',
         'get_current_time',
+        'list_task_lists',
+        'get_task_list',
+        'list_tasks',
+        'get_task',
       ];
 
       for (const toolName of readOnlyTools) {
@@ -87,7 +111,7 @@ describe('Tool Definitions - Schema Tests', () => {
     });
 
     it('should mark destructive operations with destructiveHint', () => {
-      const destructiveTools = ['delete_event', 'unsubscribe_calendar'];
+      const destructiveTools = ['delete_event', 'unsubscribe_calendar', 'delete_task_list', 'delete_task'];
 
       for (const toolName of destructiveTools) {
         const def = AllToolDefinitions.find((d) => d.name === toolName);
@@ -124,10 +148,14 @@ describe('Tool Definitions - Schema Tests', () => {
     });
 
     it('should work when CalendarService is set', async () => {
-      const mockService = {
+      const mockCalendarService = {
         listEvents: async () => [{ id: '1', summary: 'Test' }],
       };
-      setCalendarService(mockService as unknown as ReturnType<typeof import('../tools/definitions').setCalendarService> extends (s: infer S) => void ? S : never);
+      const mockTasksService = {
+        listTaskLists: async () => [{ id: '1', title: 'Test List' }],
+      };
+      setCalendarService(mockCalendarService as unknown as ReturnType<typeof import('../tools/definitions').setCalendarService> extends (s: infer S) => void ? S : never);
+      setTasksService(mockTasksService as unknown as ReturnType<typeof import('../tools/definitions').setTasksService> extends (s: infer S) => void ? S : never);
 
       const def = AllToolDefinitions.find((d) => d.name === 'list_events');
       const result = await def!.handler({});
@@ -136,6 +164,7 @@ describe('Tool Definitions - Schema Tests', () => {
       expect(result.content[0].type).toBe('text');
 
       setCalendarService(null as unknown as ReturnType<typeof import('../tools/definitions').setCalendarService> extends (s: infer S) => void ? S : never);
+      setTasksService(null as unknown as ReturnType<typeof import('../tools/definitions').setTasksService> extends (s: infer S) => void ? S : never);
     });
   });
 });

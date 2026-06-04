@@ -249,6 +249,96 @@ export const GetCurrentTimeSchema = z
   .object({})
   .describe('Get current server time with timezone context');
 
+export const ListTaskListsSchema = z
+  .object({})
+  .describe('List all task lists in the user account');
+
+export const GetTaskListSchema = z
+  .object({
+    listId: z.string().describe('Task list ID'),
+  })
+  .describe('Get details of a single task list');
+
+export const CreateTaskListSchema = z
+  .object({
+    title: z.string().describe('Task list title (max 1024 chars)'),
+  })
+  .describe('Create a new task list');
+
+export const UpdateTaskListSchema = z
+  .object({
+    listId: z.string().describe('Task list ID'),
+    title: z.string().describe('Updated task list title'),
+  })
+  .describe('Update a task list title');
+
+export const DeleteTaskListSchema = z
+  .object({
+    listId: z.string().describe('Task list ID to delete'),
+  })
+  .describe('Delete a task list and all its tasks');
+
+export const ListTasksSchema = z
+  .object({
+    listId: z.string().optional().describe('Task list ID (defaults to @default)'),
+    showCompleted: z.boolean().optional().describe('Include completed tasks (default true)'),
+    showHidden: z.boolean().optional().describe('Include hidden tasks (default false)'),
+    dueMin: ISO8601String.optional().describe('Filter tasks due after this date'),
+    dueMax: ISO8601String.optional().describe('Filter tasks due before this date'),
+  })
+  .describe('List tasks in a task list');
+
+export const GetTaskSchema = z
+  .object({
+    listId: z.string().describe('Task list ID'),
+    taskId: z.string().describe('Task ID'),
+  })
+  .describe('Get details of a single task');
+
+export const CreateTaskSchema = z
+  .object({
+    listId: z.string().optional().describe('Task list ID (defaults to @default)'),
+    title: z.string().describe('Task title (max 1024 chars)'),
+    notes: z.string().optional().describe('Task notes (max 8192 chars)'),
+    due: ISO8601String.optional().describe('Due date (RFC 3339 date-only, e.g., 2026-06-10)'),
+    parent: z.string().optional().describe('Parent task ID for subtasks'),
+  })
+  .describe('Create a new task');
+
+export const UpdateTaskSchema = z
+  .object({
+    listId: z.string().describe('Task list ID'),
+    taskId: z.string().describe('Task ID'),
+    title: z.string().optional().describe('Updated task title'),
+    notes: z.string().optional().describe('Updated notes'),
+    due: ISO8601String.optional().describe('Updated due date'),
+    status: z.enum(['needsAction', 'completed']).optional().describe('Task status'),
+  })
+  .describe('Update an existing task (partial update)');
+
+export const DeleteTaskSchema = z
+  .object({
+    listId: z.string().describe('Task list ID'),
+    taskId: z.string().describe('Task ID to delete'),
+  })
+  .describe('Delete a task');
+
+export const CompleteTaskSchema = z
+  .object({
+    listId: z.string().describe('Task list ID'),
+    taskId: z.string().describe('Task ID to mark as completed'),
+  })
+  .describe('Mark a task as completed');
+
+export const MoveTaskSchema = z
+  .object({
+    listId: z.string().describe('Task list ID'),
+    taskId: z.string().describe('Task ID to move'),
+    parent: z.string().optional().describe('New parent task ID'),
+    previous: z.string().optional().describe('Task ID to position after'),
+  })
+  .describe('Move a task to a new position or parent');
+
 // Type exports for consuming code
 export type ListEventsInput = z.infer<typeof ListEventsSchema>;
 export type GetEventInput = z.infer<typeof GetEventSchema>;
@@ -267,8 +357,19 @@ export type UnsubscribeCalendarInput = z.infer<typeof UnsubscribeCalendarSchema>
 export type ListSubscriptionsInput = z.infer<typeof ListSubscriptionsSchema>;
 export type SearchEventsInput = z.infer<typeof SearchEventsSchema>;
 export type GetCurrentTimeInput = z.infer<typeof GetCurrentTimeSchema>;
+export type ListTaskListsInput = z.infer<typeof ListTaskListsSchema>;
+export type GetTaskListInput = z.infer<typeof GetTaskListSchema>;
+export type CreateTaskListInput = z.infer<typeof CreateTaskListSchema>;
+export type UpdateTaskListInput = z.infer<typeof UpdateTaskListSchema>;
+export type DeleteTaskListInput = z.infer<typeof DeleteTaskListSchema>;
+export type ListTasksInput = z.infer<typeof ListTasksSchema>;
+export type GetTaskInput = z.infer<typeof GetTaskSchema>;
+export type CreateTaskInput = z.infer<typeof CreateTaskSchema>;
+export type UpdateTaskInput = z.infer<typeof UpdateTaskSchema>;
+export type DeleteTaskInput = z.infer<typeof DeleteTaskSchema>;
+export type CompleteTaskInput = z.infer<typeof CompleteTaskSchema>;
+export type MoveTaskInput = z.infer<typeof MoveTaskSchema>;
 
-// Registry of all tool schemas
 export const AllToolSchemas = {
   list_events: ListEventsSchema,
   get_event: GetEventSchema,
@@ -285,4 +386,16 @@ export const AllToolSchemas = {
   list_subscriptions: ListSubscriptionsSchema,
   search_events: SearchEventsSchema,
   get_current_time: GetCurrentTimeSchema,
+  list_task_lists: ListTaskListsSchema,
+  get_task_list: GetTaskListSchema,
+  create_task_list: CreateTaskListSchema,
+  update_task_list: UpdateTaskListSchema,
+  delete_task_list: DeleteTaskListSchema,
+  list_tasks: ListTasksSchema,
+  get_task: GetTaskSchema,
+  create_task: CreateTaskSchema,
+  update_task: UpdateTaskSchema,
+  delete_task: DeleteTaskSchema,
+  complete_task: CompleteTaskSchema,
+  move_task: MoveTaskSchema,
 } as const;

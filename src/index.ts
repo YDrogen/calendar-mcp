@@ -4,8 +4,9 @@ import { createHttpServer } from './transport/http.js';
 import { createStdioServer } from './transport/stdio.js';
 
 import { CalendarService } from './services/calendar-service.js';
+import { TasksService } from './services/tasks-service.js';
 import { createHandlers } from './tools/handlers.js';
-import { setCalendarService } from './tools/definitions.js';
+import { setCalendarService, setTasksService } from './tools/definitions.js';
 import { OAuth2Client } from 'google-auth-library';
 
 export async function main() {
@@ -31,8 +32,10 @@ export async function main() {
     );
 
     const calendarService = new CalendarService(oauth2Client);
-    const handlers = createHandlers(calendarService);
+    const tasksService = new TasksService(oauth2Client);
+    const handlers = createHandlers(calendarService, tasksService);
     setCalendarService(calendarService);
+    setTasksService(tasksService);
 
     if (config.transport === 'http' || config.transport === 'both') {
       const httpServer = createHttpServer(handlers, config.httpPort, config.allowedHosts);

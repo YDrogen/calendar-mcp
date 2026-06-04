@@ -51,7 +51,10 @@ describe('oauth-client', () => {
       expect(client.generateAuthUrl).toHaveBeenCalledWith({
         access_type: 'offline',
         prompt: 'consent',
-        scope: ['https://www.googleapis.com/auth/calendar'],
+        scope: [
+          'https://www.googleapis.com/auth/calendar',
+          'https://www.googleapis.com/auth/tasks',
+        ],
       });
     });
   });

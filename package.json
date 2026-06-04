@@ -40,6 +40,7 @@
   },
   "dependencies": {
     "@googleapis/calendar": "^15.0.0",
+    "@googleapis/tasks": "^12.0.0",
     "@modelcontextprotocol/sdk": "^1.29.0",
     "express": "^5.2.1",
     "gaxios": "^7.1.4",

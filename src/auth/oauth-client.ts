@@ -1,6 +1,9 @@
 import { OAuth2Client } from 'google-auth-library';
 
-const SCOPES = ['https://www.googleapis.com/auth/calendar'];
+const SCOPES = [
+  'https://www.googleapis.com/auth/calendar',
+  'https://www.googleapis.com/auth/tasks',
+];
 
 export interface CreateOAuthClientOptions {
   clientId: string;
