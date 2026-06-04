@@ -63,6 +63,7 @@ All configuration is done via environment variables:
 | `HTTP_PORT` | No | `3000` | HTTP server port for SSE and webhook endpoints |
 | `OAUTH_PORT` | No | `3500` | Port for the OAuth2 callback server |
 | `CALENDAR_MCP_ENCRYPTION_KEY` | No | auto-generated | 64-character hex string for AES-256-GCM token encryption |
+| `MCP_ALLOWED_HOSTS` | No | — | Comma-separated allowed hosts for HTTP transport (DNS rebinding protection). When unset, all hosts are allowed |
 
 ### Generating an encryption key
 

@@ -7,7 +7,8 @@ import { createWebhookEndpoint, channelStore } from '../webhooks/endpoint.js';
 
 export function createHttpServer(
   handlers: { [name: string]: ToolHandler },
-  port?: number
+  port?: number,
+  allowedHosts?: string[]
 ) {
   const server = new McpServer({
     name: 'calendar-mcp-http',
@@ -30,20 +31,21 @@ export function createHttpServer(
     }
   });
 
-  app.use((req, res, next) => {
-    const host = req.headers.host;
-    if (!host) {
-      res.status(403).send('Invalid Host header');
-      return;
-    }
-    const hostWithoutPort = host.split(':')[0];
-    const allowedHosts = ['localhost', '127.0.0.1', '::1'];
-    if (!allowedHosts.includes(hostWithoutPort)) {
-      res.status(403).send('Invalid Host header');
-      return;
-    }
-    next();
-  });
+  if (allowedHosts && allowedHosts.length > 0) {
+    app.use((req, res, next) => {
+      const host = req.headers.host;
+      if (!host) {
+        res.status(403).send('Invalid Host header');
+        return;
+      }
+      const hostWithoutPort = host.split(':')[0];
+      if (!allowedHosts.includes(hostWithoutPort)) {
+        res.status(403).send('Invalid Host header');
+        return;
+      }
+      next();
+    });
+  }
 
   app.get('/health', (req, res) => {
     res.json({ status: 'ok' });
@@ -54,10 +56,16 @@ export function createHttpServer(
   const transports: Record<string, SSEServerTransport> = {};
 
   function createSseTransport(res: express.Response, messageEndpoint: string) {
-    const transport = new SSEServerTransport(messageEndpoint, res, {
-      enableDnsRebindingProtection: true,
-      allowedHosts: ['localhost', '127.0.0.1', '::1'],
-    });
+    const transport = new SSEServerTransport(
+      messageEndpoint,
+      res,
+      allowedHosts && allowedHosts.length > 0
+        ? {
+            enableDnsRebindingProtection: true,
+            allowedHosts,
+          }
+        : {}
+    );
     const sessionId = transport.sessionId;
     transports[sessionId] = transport;
     transport.onclose = () => {

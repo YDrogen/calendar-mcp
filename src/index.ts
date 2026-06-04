@@ -35,7 +35,7 @@ export async function main() {
     setCalendarService(calendarService);
 
     if (config.transport === 'http' || config.transport === 'both') {
-      const httpServer = createHttpServer(handlers, config.httpPort);
+      const httpServer = createHttpServer(handlers, config.httpPort, config.allowedHosts);
       await httpServer.start();
       console.log(`HTTP server listening on port ${config.httpPort}`);
     }

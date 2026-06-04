@@ -5,6 +5,13 @@ export interface Config {
   oauthPort: number;
   encryptionKey?: string;
   transport: 'stdio' | 'http' | 'both';
+  allowedHosts?: string[];
+}
+
+function parseAllowedHosts(): string[] | undefined {
+  const raw = process.env.MCP_ALLOWED_HOSTS;
+  if (!raw) return undefined;
+  return raw.split(',').map((h) => h.trim());
 }
 
 export function loadConfig(): Config {
@@ -24,6 +31,7 @@ export function loadConfig(): Config {
     oauthPort: Number(process.env.OAUTH_PORT) || 3500,
     encryptionKey: process.env.CALENDAR_MCP_ENCRYPTION_KEY,
     transport: parseTransport(process.argv),
+    allowedHosts: parseAllowedHosts(),
   };
 }
 
@@ -55,6 +63,8 @@ Environment Variables:
   HTTP_PORT                   HTTP server port (default: 3000)
   OAUTH_PORT                  OAuth callback port (default: 3500)
   CALENDAR_MCP_ENCRYPTION_KEY Encryption key for token storage (optional)
+  MCP_ALLOWED_HOSTS           Comma-separated allowed hosts for HTTP transport (optional)
+                                When unset, all hosts are allowed. Example: localhost,192.168.1.1
 `);
 }
 

@@ -67,7 +67,11 @@ describe('HTTP Transport Server', () => {
   });
 
   it('should reject requests with invalid Host header', async () => {
-    const { app } = createHttpServer(mockHandlers);
+    const { app } = createHttpServer(mockHandlers, undefined, [
+      'localhost',
+      '127.0.0.1',
+      '::1',
+    ]);
     const server = http.createServer(app);
 
     return new Promise<void>((resolve, reject) => {
