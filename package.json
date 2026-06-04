@@ -1,0 +1,60 @@
+{
+  "name": "@calendar-mcp/server",
+  "version": "1.0.0",
+  "description": "Google Calendar MCP Server",
+  "type": "module",
+  "main": "dist/index.js",
+  "bin": {
+    "calendar-mcp": "./dist/index.js"
+  },
+  "exports": {
+    ".": {
+      "import": "./dist/index.js",
+      "types": "./dist/index.d.ts"
+    }
+  },
+  "files": [
+    "dist"
+  ],
+  "scripts": {
+    "build": "tsup && tsc -p tsconfig.json -d --emitDeclarationOnly --outDir dist",
+    "dev": "tsx watch src/index.ts",
+    "test": "vitest",
+    "lint": "eslint src/",
+    "start": "node dist/index.js"
+  },
+  "keywords": [
+    "mcp",
+    "calendar",
+    "google-calendar",
+    "model-context-protocol"
+  ],
+  "author": "",
+  "license": "ISC",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/your-org/calendar-mcp.git"
+  },
+  "engines": {
+    "node": ">=20.0.0"
+  },
+  "dependencies": {
+    "@googleapis/calendar": "^15.0.0",
+    "@modelcontextprotocol/sdk": "^1.29.0",
+    "express": "^5.2.1",
+    "gaxios": "^7.1.4",
+    "google-auth-library": "^10.6.2",
+    "zod": "^4.4.3"
+  },
+  "devDependencies": {
+    "@eslint/js": "^10.0.1",
+    "@types/express": "^5.0.6",
+    "@types/node": "^25.9.1",
+    "eslint": "^10.4.1",
+    "prettier": "^3.8.3",
+    "tsup": "^8.5.1",
+    "typescript": "^6.0.3",
+    "typescript-eslint": "^8.60.1",
+    "vitest": "^4.1.8"
+  }
+}

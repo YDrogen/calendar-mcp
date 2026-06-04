@@ -1,0 +1,8 @@
+src/
+**/__tests__/
+.sisyphus/
+.codegraph/
+node_modules/
+.git/
+*.log
+.env

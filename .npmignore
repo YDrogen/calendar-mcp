@@ -1,0 +1,11 @@
+src/
+**/__tests__/
+.sisyphus/
+.codegraph/
+tsconfig.json
+tsup.config.ts
+eslint.config.js
+vitest.config.ts
+*.test.ts
+node_modules/
+.git/
